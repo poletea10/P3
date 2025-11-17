@@ -19,7 +19,7 @@ namespace upc {
       /**   
        \DONE Autocorrelation implemented
        \f[
-       r[l] = \sum_{n=0}^{N-l} x[n] x[n+l]
+       r[l] = \sum_{n=0}^{N-l} x_i^*[n] x_i[n+l]
        \f]
        - Inicializamos la autocorrelacion a 0.
        - Sumamos la multiplicacion con la señal desplazada.

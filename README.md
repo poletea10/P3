@@ -7,6 +7,13 @@ misma y distribuir copias locales (*clones*) del mismo a los distintos integrant
 
 Recuerde realizar el *pull request* al repositorio original una vez completada la práctica.
 
+### COMANDOS IMPORTANTES
+
+`make release` -> Compilar el programa
+`PATH+=:~/PAV/bin` -> Añade la carpeta `~/PAV/bin` a lista de PATHs de búsqueda de archivos ejecutables, así podremos ejecutar directamente todos los archivos de esa carpeta poniendo su nombre en la terminal (como el de esta práctica, `get pitch`). ¡Lo hemos añadido a `~/.profile` para que se añada este PATH automáticamente al inicializar WSL!
+`get pitch` -> Ejecutar el programa de "pitch estimation"
+
+
 Ejercicios básicos
 ------------------
 
