@@ -13,7 +13,7 @@ namespace upc {
     for (unsigned int l = 0; l < r.size(); ++l) {
   		/// \TODO Compute the autocorrelation r[l]
       r[l]=0.0F;
-      for(int n=0;n<r.size()-l;n++){
+      for(unsigned int n=0; n<r.size()-l; n++){
           r[l] += x[n]*x[n + l];
       }
       /**   
@@ -62,7 +62,7 @@ namespace upc {
     /// \TODO Implement a rule to decide whether the sound is voiced or not.
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
-    return true;
+    return false; // Antes era true! Ahora estamos marcando todo como unvoiced
   }
 
   float PitchAnalyzer::compute_pitch(vector<float> & x) const {
@@ -87,6 +87,8 @@ namespace upc {
 	///    - The lag corresponding to the maximum value of the pitch.
     ///	   .
 	/// In either case, the lag should not exceed that of the minimum value of the pitch.
+
+    iRMax = std::max_element(iR + npitch_min, iR + npitch_max); // Returns the iterator pointing at the max position between npitch_min & npitch_max
 
     unsigned int lag = iRMax - r.begin();
 
