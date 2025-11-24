@@ -62,7 +62,15 @@ namespace upc {
     /// \TODO Implement a rule to decide whether the sound is voiced or not.
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
-    return false; // Antes era true! Ahora estamos marcando todo como voiced
+
+    // Voiced parts tend to have a lot of power (normalise it from the actual power of the signal) and the r[lag]/r[0] ratio is higher
+    if (rmaxnorm > this->umaxnorm){
+      return false; // Voiced
+    }
+
+    // Voiced parts tend to have a wider lobe (less erratic), so the r[1]/r[0] ratio is higher (similar values)
+
+    return true; // Unvoiced
   }
 
   float PitchAnalyzer::compute_pitch(vector<float> & x) const {
@@ -92,9 +100,14 @@ namespace upc {
     iRMax = std::max_element(iR + npitch_min, iR + npitch_max); // Returns the iterator pointing at the max position between npitch_min (smallest lag) & npitch_max (biggest lag)
 
     unsigned int lag = iRMax - r.begin(); // Computes the index (lag) of the maximum in that range (position of max iterator - pointer at the beginning)
-    // Now lag is the number of samples (tied to samplingFreq) corresponding to our estimated pitch period!
+    // Now lag is the number of samples corresponding to our estimated pitch period!
 
-    float pot = 10 * log10(r[0]); // Power of current window -> Good for voicing decision, since unvoiced parts have low energy and noisy curve, and vice versa
+  /**   
+    \DONE Lag of maximum value implemented
+    Since we've already set a minimum and maximum pitch (the code came like this), we used the second option: minimum value of the lag is the one corresponding to the maximum value of the pitch
+  */
+
+    float pot = 10 * log10(r[0]); // Power of current window -> Good for voicing decision, since unvoiced parts have low energy, and vice versa
 
     //You can print these (and other) features, look at them using wavesurfer
     //Based on that, implement a rule for unvoiced
