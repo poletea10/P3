@@ -42,7 +42,7 @@ namespace upc {
       break;
     case RECT:
     default:
-      window.assign(frameLen, 1);
+      window.assign(frameLen, 1); // Square window (1 coefficients for the whole frameLen)
     }
   }
 
@@ -62,7 +62,7 @@ namespace upc {
     /// \TODO Implement a rule to decide whether the sound is voiced or not.
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
-    return false; // Antes era true! Ahora estamos marcando todo como unvoiced
+    return false; // Antes era true! Ahora estamos marcando todo como voiced
   }
 
   float PitchAnalyzer::compute_pitch(vector<float> & x) const {
@@ -73,12 +73,13 @@ namespace upc {
     for (unsigned int i=0; i<x.size(); ++i)
       x[i] *= window[i];
 
+    // r will hold the autocorrelation values for lags from 0 to npitch_max-1 (max lag = lowest freq)
     vector<float> r(npitch_max);
 
     //Compute correlation
     autocorrelation(x, r);
 
-    vector<float>::const_iterator iR = r.begin(), iRMax = iR;
+    vector<float>::const_iterator iR = r.begin(), iRMax = iR; // We create two iterators that, at this instant, point to the first element of r
 
     /// \TODO 
 	/// Find the lag of the maximum value of the autocorrelation away from the origin.<br>
@@ -88,11 +89,12 @@ namespace upc {
     ///	   .
 	/// In either case, the lag should not exceed that of the minimum value of the pitch.
 
-    iRMax = std::max_element(iR + npitch_min, iR + npitch_max); // Returns the iterator pointing at the max position between npitch_min & npitch_max
+    iRMax = std::max_element(iR + npitch_min, iR + npitch_max); // Returns the iterator pointing at the max position between npitch_min (smallest lag) & npitch_max (biggest lag)
 
-    unsigned int lag = iRMax - r.begin();
+    unsigned int lag = iRMax - r.begin(); // Computes the index (lag) of the maximum in that range (position of max iterator - pointer at the beginning)
+    // Now lag is the number of samples (tied to samplingFreq) corresponding to our estimated pitch period!
 
-    float pot = 10 * log10(r[0]);
+    float pot = 10 * log10(r[0]); // Power of current window -> Good for voicing decision, since unvoiced parts have low energy and noisy curve, and vice versa
 
     //You can print these (and other) features, look at them using wavesurfer
     //Based on that, implement a rule for unvoiced
@@ -102,9 +104,9 @@ namespace upc {
       cout << pot << '\t' << r[1]/r[0] << '\t' << r[lag]/r[0] << endl;
 #endif
     
-    if (unvoiced(pot, r[1]/r[0], r[lag]/r[0]))
+    if (unvoiced(pot, r[1]/r[0], r[lag]/r[0])) // If unvoiced returns True, we set pitch as 0
       return 0;
     else
-      return (float) samplingFreq/(float) lag;
+      return (float) samplingFreq/(float) lag; // Returns pitch (samplingFreq / lag)
   }
 }

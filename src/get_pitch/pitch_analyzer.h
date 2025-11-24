@@ -7,8 +7,8 @@
 #include <algorithm>
 
 namespace upc {
-  const float MIN_F0 = 20.0F;    ///< Minimum value of pitch in Hertzs
-  const float MAX_F0 = 10000.0F; ///< Maximum value of pitch in Hertzs
+  const float MIN_F0 = 50.0F;   ///< Minimum value of pitch in Hertzs
+  const float MAX_F0 = 500.0F;  ///< Maximum value of pitch in Hertzs
 
   ///
   /// PitchAnalyzer: class that computes the pitch (in Hz) from a signal frame.
