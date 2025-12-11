@@ -88,9 +88,30 @@ int main(int argc, const char *argv[]) {
   }
 
 
-  /// \TODO
+  /// \TODO --> DONE?
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
   /// or time-warping may be used.
+
+  /// Postprocess: Filtro mediana ventana 3 (estándar)
+  if (f0.size() >= 3) {
+      vector<float> f0_med(f0.size());
+      
+      // Primer y último frame sin tocar
+      f0_med[0] = f0[0];
+      f0_med.back() = f0.back();
+      
+      // Mediana para frames centrales
+      for(size_t i = 1; i < f0.size() - 1; ++i) {
+          vector<float> window = {f0[i-1], f0[i], f0[i+1]};
+          sort(window.begin(), window.end());
+          f0_med[i] = window[1];  // mediana
+      }
+      
+      f0 = f0_med;
+  }
+
+
+
 
   // Write f0 contour into the output file
   ofstream os(output_txt);

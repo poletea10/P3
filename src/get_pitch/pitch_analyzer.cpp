@@ -38,7 +38,10 @@ namespace upc {
 
     switch (win_type) {
     case HAMMING:
-      /// \TODO Implement the Hamming window
+      /// \TODO Implement the Hamming window --> DONE?
+      for (unsigned int n = 0; n < frameLen; ++n) {
+        window[n] = 0.54f - 0.46f * cosf(2.0f * M_PI * n / (frameLen - 1));
+      } 
       break;
     case RECT:
     default:
@@ -62,7 +65,7 @@ namespace upc {
     /// \TODO Implement a rule to decide whether the sound is voiced or not.
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
-
+    
     // Voiced parts tend to have a lot of power (normalise it from the actual power of the signal) and the r[lag]/r[0] ratio is higher
     if (rmaxnorm > this->umaxnorm){
       return false; // Voiced
