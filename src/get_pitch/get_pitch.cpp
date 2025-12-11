@@ -49,7 +49,7 @@ int main(int argc, const char *argv[]) {
 
 	std::string input_wav = args["<input-wav>"].asString();
 	std::string output_txt = args["<output-txt>"].asString();
-  float umaxnorm = std::stof(args["--umaxnorm"].asString());
+  float umaxnorm = std::stof(args["--umaxnorm"].asString()); // Em dona millor amb 0.29
 
   // Read input sound file
   unsigned int rate;

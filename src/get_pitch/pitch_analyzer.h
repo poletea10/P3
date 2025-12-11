@@ -37,6 +37,11 @@ namespace upc {
 	///
     void autocorrelation(const std::vector<float> &x, std::vector<float> &r) const;
 
+  ///
+  /// Computes AMDF (Average Magnitude Difference Function) from lag=0 to d.size()
+  ///
+    void amdf(const std::vector<float> &x, std::vector<float> &d) const;
+    
 	///
 	/// Returns the pitch (in Hz) of input frame x
 	///

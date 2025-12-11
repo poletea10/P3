@@ -30,6 +30,16 @@ namespace upc {
       r[0] = 1e-10; 
   }
 
+  void PitchAnalyzer::amdf(const std::vector<float> &x, std::vector<float> &d) const {  //No es tan bueno como la autocorrelacion
+    for (unsigned int l = 0; l < d.size(); ++l) {
+      float acc = 0.0f;
+      for (unsigned int n = 0; n < x.size() - l; ++n) {
+        acc += fabsf(x[n] - x[n + l]);
+      }
+      d[l] = acc;
+    }
+  } 
+
   void PitchAnalyzer::set_window(Window win_type) {
     if (frameLen == 0)
       return;
@@ -38,7 +48,7 @@ namespace upc {
 
     switch (win_type) {
     case HAMMING:
-      /// \TODO Implement the Hamming window --> DONE?
+      /// \TODO Implement the Hamming window --> DONE? --> No es tan eficiente como usar ventanas rectangulares
       for (unsigned int n = 0; n < frameLen; ++n) {
         window[n] = 0.54f - 0.46f * cosf(2.0f * M_PI * n / (frameLen - 1));
       } 
@@ -62,18 +72,11 @@ namespace upc {
   }
 
   bool PitchAnalyzer::unvoiced(float pot, float r1norm, float rmaxnorm) const {
-    /// \TODO Implement a rule to decide whether the sound is voiced or not.
-    /// * You can use the standard features (pot, r1norm, rmaxnorm),
-    ///   or compute and use other ones.
-    
-    // Voiced parts tend to have a lot of power (normalise it from the actual power of the signal) and the r[lag]/r[0] ratio is higher
-    if (rmaxnorm > this->umaxnorm){
-      return false; // Voiced
-    }
-
-    // Voiced parts tend to have a wider lobe (less erratic), so the r[1]/r[0] ratio is higher (similar values)
-
-    return true; // Unvoiced
+    // Regla base: igual que antes, solo con rmaxnorm
+    if (rmaxnorm > this->umaxnorm)
+        return false;   // voiced
+    else
+        return true;    // unvoiced
   }
 
   float PitchAnalyzer::compute_pitch(vector<float> & x) const {
