@@ -65,36 +65,28 @@ int main(int argc, const char *argv[]) {
   // Define analyzer
   PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500, umaxnorm); // We send 50Hz and 500Hz as the pitch range (we override the constants 20Hz-10000Hz)
 
-  /// \TODO
+  /// \TODO --> DONE?
   /// Preprocess the input signal in order to ease pitch estimation. For instance,
   /// central-clipping or low pass filtering may be used.
   
-  /// Preprocess the input signal: Center clipping + Low-pass simple
+  /// Preprocess the input signal: Center clipping --> El ruido de fondo (ruido blanco, respiración) tiene amplitud pequeña → se elimina
   vector<float> x_processed = x;
 
-  // Center clipping (mejora voiced/unvoiced en ruido) --> El ruido de fondo (ruido blanco, respiración) tiene amplitud pequeña → se elimina
-  float clip_level = 0.2f;  // 20% del rango dinámico
-  for(float& sample : x_processed) {
-      sample = (fabsf(sample) > clip_level) ? sample : 0.0f;
+  float clip_level = 0.006f;
+  for (float &sample : x_processed) {
+      if (fabsf(sample) < clip_level) {
+          sample = 0.0f;
+      }
   }
 
-  // Low-pass filter simple (solo fundamentals <1kHz) --> Promedia cada muestra con la anterior (α=0.95), actuando como filtro pasa-bajos ~1kHz.
-  int cutoff_samples = rate / 1000;  // ~1kHz
-  for(size_t i = cutoff_samples; i < x_processed.size(); ++i) {
-      x_processed[i] = 0.95f * x_processed[i-1] + 0.05f * x_processed[i];
-  }
-
-  // Usar x_processed en lugar de x original
-   vector <float>::iterator iX = x_processed.begin();
-
-
-
-  // Iterate for each frame and save values in f0 vector
+  vector<float>::iterator iX;
   vector<float> f0;
-  for (iX = x.begin(); iX + n_len < x.end(); iX = iX + n_shift) {
-    float f = analyzer(iX, iX + n_len);
-    f0.push_back(f);
+
+  for (iX = x_processed.begin(); iX + n_len < x_processed.end(); iX = iX + n_shift) {
+      float f = analyzer(iX, iX + n_len);
+      f0.push_back(f);
   }
+
 
   /// \TODO
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
