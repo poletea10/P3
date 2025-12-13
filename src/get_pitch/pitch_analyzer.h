@@ -30,7 +30,11 @@ namespace upc {
       samplingFreq, ///< sampling rate (in samples per second). Has to be set in the constructor call
       npitch_min, ///< minimum value of pitch period, in samples
       npitch_max; ///< maximum value of pitch period, in samples
-      float umaxnorm; // Object variable
+      float uminPot; // Object variable
+      float umaxnorm_hi; // Object variable
+      float umaxnorm_lo; // Object variable
+      float ur1norm; // Object variable
+      float harm_ratio; // Object variable
  
 	///
 	/// Computes correlation from lag=0 to r.size()
@@ -56,17 +60,25 @@ namespace upc {
   public:
     PitchAnalyzer(	unsigned int fLen,			///< Frame length in samples
 					unsigned int sFreq,			///< Sampling rate in Hertzs
-					Window w=PitchAnalyzer::HAMMING,	///< Window type
+					Window w=PitchAnalyzer::RECT,	///< Window type
 					float min_F0 = MIN_F0,		///< Pitch range should be restricted to be above this value (we can send it as a value or use the constant)
 					float max_F0 = MAX_F0,		///< Pitch range should be restricted to be below this value (we can send it as a value or use the constant)
-          float umaxnorm = 0.5      // Input argument for object creation
+          float uminPot = -10, //< Upper threshold for power in unvoiced decision
+          float umaxnorm_hi = 0.5,     ///< Lower threshold for maxnorm in voiced decision
+          float umaxnorm_lo = 0.3,          //< Upper threshold for maxnorm in unvoiced decision
+          float ur1norm = 0.9,   //< Lower threshold for r1norm when found in gray area, in voiced decision
+          float harm_ratio = 0.85  //< Level comparison with lag*2
 				 )
 	{
       frameLen = fLen;
       samplingFreq = sFreq;
       set_f0_range(min_F0, max_F0);
       set_window(w);
-      this->umaxnorm = umaxnorm; // Save umaxnorm input argument to object variable umaxnorm
+      this->uminPot = uminPot;
+      this->umaxnorm_hi = umaxnorm_hi; // Save umaxnorm input argument to object variable umaxnorm_hi
+      this->umaxnorm_lo = umaxnorm_lo;
+      this->ur1norm = ur1norm;
+      this->harm_ratio = harm_ratio;
     }
 
 	///

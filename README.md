@@ -10,8 +10,11 @@ Recuerde realizar el *pull request* al repositorio original una vez completada l
 ### COMANDOS IMPORTANTES
 
 `make release` -> Compilar el programa
+
 `PATH+=:~/PAV/bin` -> Añade la carpeta `~/PAV/bin` a lista de PATHs de búsqueda de archivos ejecutables, así podremos ejecutar directamente todos los archivos de esa carpeta poniendo su nombre en la terminal (como el de esta práctica, `get pitch`). ¡Lo hemos añadido a `~/.profile` para que se añada este PATH automáticamente al inicializar WSL!
+
 `get_pitch` -> Ejecutar el programa de "pitch estimation", devolviendo...
+
 `run_get_pitch` -> Ejecuta el programa de "pitch estimation" para cada archivo en pitch_db/train/ y evalúa los resultados (evaluación de nuestro programa usando todo el set de audios)
 
 
@@ -22,6 +25,7 @@ Ejercicios básicos
   `get_pitch`.
 
    * Complete el cálculo de la autocorrelación e inserte a continuación el código correspondiente.
+   OKAY
 
    * Inserte una gŕafica donde, en un *subplot*, se vea con claridad la señal temporal de un segmento de
      unos 30 ms de un fonema sonoro y su periodo de pitch; y, en otro *subplot*, se vea con claridad la
@@ -30,10 +34,14 @@ Ejercicios básicos
 	 NOTA: es más que probable que tenga que usar Python, Octave/MATLAB u otro programa semejante para
 	 hacerlo. Se valorará la utilización de la biblioteca matplotlib de Python.
 
+   TBD
+
    * Determine el mejor candidato para el periodo de pitch localizando el primer máximo secundario de la
      autocorrelación. Inserte a continuación el código correspondiente.
+    OKAY
 
    * Implemente la regla de decisión sonoro o sordo e inserte el código correspondiente.
+   OKAY
 
    * Puede serle útil seguir las instrucciones contenidas en el documento adjunto `código.pdf`.
 
@@ -53,16 +61,22 @@ Ejercicios básicos
 	    Recuerde configurar los paneles de datos para que el desplazamiento de ventana sea el adecuado, que
 		en esta práctica es de 15 ms.
 
+    TBD (#IF 1)
+
       - Use el estimador de pitch implementado en el programa `wavesurfer` en una señal de prueba y compare
 	    su resultado con el obtenido por la mejor versión de su propio sistema.  Inserte una gráfica
 		ilustrativa del resultado de ambos estimadores.
      
 		Aunque puede usar el propio Wavesurfer para obtener la representación, se valorará
 	 	el uso de alternativas de mayor calidad (particularmente Python).
+
+    TBD
   
   * Optimice los parámetros de su sistema de estimación de pitch e inserte una tabla con las tasas de error
     y el *score* TOTAL proporcionados por `pitch_evaluate` en la evaluación de la base de datos 
 	`pitch_db/train`..
+
+    OKAY (mira taules d'altres companys)
 
 Ejercicios de ampliación
 ------------------------
@@ -82,13 +96,13 @@ Ejercicios de ampliación
 
   Entre las posibles mejoras, puede escoger una o más de las siguientes:
 
-  * Técnicas de preprocesado: filtrado paso bajo, diezmado, *center clipping*, etc.
-  * Técnicas de postprocesado: filtro de mediana, *dynamic time warping*, etc.
-  * Métodos alternativos a la autocorrelación: procesado cepstral, *average magnitude difference function*
-    (AMDF), etc.
+  * Técnicas de preprocesado: filtrado paso bajo, diezmado, __*center clipping*__, etc. OKAY (variació threshold com a input entrada)
+  * Técnicas de postprocesado: __filtro de mediana__, *dynamic time warping*, etc. OKAY (variació finestra com a input d'entrada)
+  * Métodos alternativos a la autocorrelación: procesado cepstral, __*average magnitude difference function*__
+    (AMDF), etc. OKAY, pero se ha visto que los resultados no eran mejores y se ha dejado sólo la función
   * Optimización **demostrable** de los parámetros que gobiernan el estimador, en concreto, de los que
-    gobiernan la decisión sonoro/sordo.
-  * Cualquier otra técnica que se le pueda ocurrir o encuentre en la literatura.
+    gobiernan la decisión sonoro/sordo. OKAY
+  * Cualquier otra técnica que se le pueda ocurrir o encuentre en la literatura. OKAY (PRUEBA HAMMING CON ARGUMENTO DE ENTRADA Y COMPARACIÓN CON ARMÓNICO)
 
   Encontrará más información acerca de estas técnicas en las [Transparencias del Curso](https://atenea.upc.edu/pluginfile.php/2908770/mod_resource/content/3/2b_PS%20Techniques.pdf)
   y en [Spoken Language Processing](https://discovery.upc.edu/iii/encore/record/C__Rb1233593?lang=cat).
@@ -97,9 +111,11 @@ Ejercicios de ampliación
   Incluya, a continuación, una explicación de las técnicas incorporadas al estimador. Se valorará la
   inclusión de gráficas, tablas, código o cualquier otra cosa que ayude a comprender el trabajo realizado.
 
+  TBD (EXPLICACIÓN CHATGPT DE LAS TÉCNICAS INCORPORADAS AL ESTIMADOR)
+
   También se valorará la realización de un estudio de los parámetros involucrados. Por ejemplo, si se opta
   por implementar el filtro de mediana, se valorará el análisis de los resultados obtenidos en función de
-  la longitud del filtro.
+  la longitud del filtro. TBD (RESULTADOS OPTIMIZACIÓN CON THRESHOLD CLIPPING DIFERENTE Y VENTANA MEDIANA DIFERENTE)!!!
    
 
 Evaluación *ciega* del estimador

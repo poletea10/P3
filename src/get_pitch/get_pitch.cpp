@@ -27,7 +27,13 @@ Usage:
     get_pitch --version
 
 Options:
-    -m, --umaxnorm FLOAT  Voiced threshold for lag-power ratio [default: 0.5]
+    --uminPot FLOAT Upper threshold for power in unvoiced decision [default: -19.5]
+    --umaxnorm-hi FLOAT  Lower voiced threshold for lag-power ratio [default: 0.57]
+    --umaxnorm-lo FLOAT  Upper unvoiced threshold for lag-power ratio [default: 0.19]
+    --ur1norm FLOAT Lower threshold for r1norm when found in gray area, in voiced decision [default: 0.86]
+    --clip-level FLOAT Threshold for center clipping [default: 0.007]
+    --med-size INT Size of the median filter windown [default: 3]
+    --harm-ratio FLOAT Level comparison with lag*2 [default: 0.96]
     -h, --help  Show this screen
     --version   Show the version of the project
 
@@ -49,7 +55,13 @@ int main(int argc, const char *argv[]) {
 
 	std::string input_wav = args["<input-wav>"].asString();
 	std::string output_txt = args["<output-txt>"].asString();
-  float umaxnorm = std::stof(args["--umaxnorm"].asString()); // Em dona millor amb 0.29
+    float uminPot = std::stof(args["--uminPot"].asString());
+    float umaxnorm_hi = std::stof(args["--umaxnorm-hi"].asString());
+    float umaxnorm_lo = std::stof(args["--umaxnorm-lo"].asString());
+    float ur1norm = std::stof(args["--ur1norm"].asString());
+    float clip_level = std::stof(args["--clip-level"].asString());
+    unsigned int med_size = std::stof(args["--med-size"].asString());
+    float harm_ratio = std::stof(args["--harm-ratio"].asString());
 
   // Read input sound file
   unsigned int rate;
@@ -63,21 +75,37 @@ int main(int argc, const char *argv[]) {
   int n_shift = rate * FRAME_SHIFT;
 
   // Define analyzer
-  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500, umaxnorm); // We send 50Hz and 500Hz as the pitch range (we override the constants 20Hz-10000Hz)
+  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 350, uminPot, umaxnorm_hi, umaxnorm_lo, ur1norm, harm_ratio); // We send 50Hz and 350Hz as the pitch range (we override the constants 20Hz-10000Hz)
 
   /// \TODO --> DONE?
   /// Preprocess the input signal in order to ease pitch estimation. For instance,
   /// central-clipping or low pass filtering may be used.
-  
-  /// Preprocess the input signal: Center clipping --> El ruido de fondo (ruido blanco, respiración) tiene amplitud pequeña → se elimina
   vector<float> x_processed = x;
 
-  float clip_level = 0.006f;
+  // Frame normalization
+  float max = *std::max_element(x_processed.begin(), x_processed.end());
+  for (int i = 0; i < (int)x_processed.size(); i++)
+    x_processed[i] /= max;
+  
+  // Center clipping --> Noise has low amplitude -> we eliminate it -> harmonics are intensified
+
+  // Without offset
   for (float &sample : x_processed) {
       if (fabsf(sample) < clip_level) {
           sample = 0.0f;
       }
   }
+
+  // With offset (worse performance, from what we've tried)
+//   for (float &sample : x_processed) {
+//       if (fabsf(sample) < clip_level) {
+//           sample = 0.0f;
+//       }else if (sample < 0){
+//         sample = sample + clip_level;
+//       }else{
+//         sample = sample - clip_level;
+//       }
+//   }
 
   vector<float>::iterator iX;
   vector<float> f0;
@@ -92,26 +120,29 @@ int main(int argc, const char *argv[]) {
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
   /// or time-warping may be used.
 
-  /// Postprocess: Filtro mediana ventana 3 (estándar)
-  if (f0.size() >= 3) {
+  /// Postprocess: Median filter
+  if (f0.size() >= med_size) {
       vector<float> f0_med(f0.size());
       
       // Primer y último frame sin tocar
       f0_med[0] = f0[0];
       f0_med.back() = f0.back();
       
-      // Mediana para frames centrales
-      for(size_t i = 1; i < f0.size() - 1; ++i) {
-          vector<float> window = {f0[i-1], f0[i], f0[i+1]};
-          sort(window.begin(), window.end());
-          f0_med[i] = window[1];  // mediana
+      // Median for center frames
+      size_t half = (med_size - 1) / 2;
+      for(size_t i = half; i + half < f0.size() - 1; ++i) {
+        vector<float> window;
+        window.reserve(med_size);
+
+        for (size_t j = i - half; j <= i + half; ++j)
+            window.push_back(f0[j]);
+
+        sort(window.begin(), window.end());
+        f0_med[i] = window[half];   // median
       }
       
       f0 = f0_med;
   }
-
-
-
 
   // Write f0 contour into the output file
   ofstream os(output_txt);
