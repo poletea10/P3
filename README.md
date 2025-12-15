@@ -411,7 +411,7 @@ Ejercicios de ampliación
 
   Los otros parámetros se han dejado en su valor *default* para hacer un análisis aislado de ambos. Hemos usado el archivo `analisis_parametros.sh` para ver como varían las métricas, graficando después los resultados con python. 
   
-  IMPORTANTE! Fíjase en las escalas del eje Y, ya que son diferentes para ambos análisis. La variación del umbral para center-clipping produce cambios más pequeños en las métricas que la variación de la longitud del filtro de mediana.
+  IMPORTANTE! Fíjese en las escalas del eje Y, ya que son diferentes para ambos análisis. La variación del umbral para center-clipping produce cambios más pequeños en las métricas que la variación de la longitud del filtro de mediana.
    
 
 Evaluación *ciega* del estimador
