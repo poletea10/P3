@@ -35,6 +35,7 @@ namespace upc {
       float umaxnorm_lo; // Object variable
       float ur1norm; // Object variable
       float harm_ratio; // Object variable
+      float clip_level; // Object variable
  
 	///
 	/// Computes correlation from lag=0 to r.size()
@@ -67,7 +68,8 @@ namespace upc {
           float umaxnorm_hi = 0.5,     ///< Lower threshold for maxnorm in voiced decision
           float umaxnorm_lo = 0.3,          //< Upper threshold for maxnorm in unvoiced decision
           float ur1norm = 0.9,   //< Lower threshold for r1norm when found in gray area, in voiced decision
-          float harm_ratio = 0.85  //< Level comparison with lag*2
+          float harm_ratio = 0.85,  //< Level comparison with lag*2
+          float clip_level = 0.5  //< Level for clipping
 				 )
 	{
       frameLen = fLen;
@@ -79,6 +81,7 @@ namespace upc {
       this->umaxnorm_lo = umaxnorm_lo;
       this->ur1norm = ur1norm;
       this->harm_ratio = harm_ratio;
+      this->clip_level = clip_level;
     }
 
 	///

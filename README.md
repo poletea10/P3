@@ -25,7 +25,24 @@ Ejercicios básicos
   `get_pitch`.
 
    * Complete el cálculo de la autocorrelación e inserte a continuación el código correspondiente.
-   OKAY
+   
+    Se ha decidido calcular la autocorrelación sin normalizar por N, ya que los parámetros se optimizaron para esta función:
+
+   ```cpp
+  void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) const {
+
+    for (unsigned int l = 0; l < r.size(); ++l) {
+      r[l]=0.0F;
+      for(unsigned int n=0; n<x.size()-l; n++){
+          r[l] += x[n]*x[n + l];
+      }
+    }
+
+    if (r[0] == 0.0F)
+  }
+   ```
+
+   Realmente las prestaciones serían las mismas si normalizásemos, sólo que aquí r[0] representa la energía de la señal y normalizado sería la potencia.
 
    * Inserte una gŕafica donde, en un *subplot*, se vea con claridad la señal temporal de un segmento de
      unos 30 ms de un fonema sonoro y su periodo de pitch; y, en otro *subplot*, se vea con claridad la
@@ -34,14 +51,46 @@ Ejercicios básicos
 	 NOTA: es más que probable que tenga que usar Python, Octave/MATLAB u otro programa semejante para
 	 hacerlo. Se valorará la utilización de la biblioteca matplotlib de Python.
 
-   TBD
+   Aquí la gráfica que se pide (el segmento del fonema sonoro ha sido generado artificialmente, usando un tren de deltas pasado por un resonador de formantes):
+
+   ![Temp vs autocorr](img/temp_vs_autocorrelacion.png)
 
    * Determine el mejor candidato para el periodo de pitch localizando el primer máximo secundario de la
      autocorrelación. Inserte a continuación el código correspondiente.
-    OKAY
+  
+  Este **no es el método usado en la versión final** para buscar el mejor candidato del periode de pitch (se puede ver en la parte avanzada). **Nos basamos en lo que pide este enunciado**, sólo añadiendo el código que localiza el primer máximo secundario de la autocorrelación:
+
+  ```cpp
+  vector<float>::const_iterator iR_clip = r_clip.begin(), iRMax_clip = iR_clip;
+
+  iRMax_clip = std::max_element(iR_clip + npitch_min, iR_clip + npitch_max);
+
+  unsigned int lagR_clip = iRMax_clip - r_clip.begin();
+  ```
+
+  Le llamamos `r_clip` en vez de `r` a secas porque en nuestro código se calculan dos autocorrelaciones (una con center-clipping y otra sin). Se explica mejor en la parte avanzada.
 
    * Implemente la regla de decisión sonoro o sordo e inserte el código correspondiente.
-   OKAY
+
+  ```cpp
+  bool PitchAnalyzer::unvoiced(float pot, float r1norm, float rmaxnorm) const {
+    if (pot < this->uminPot)
+        return true;
+    
+    if (rmaxnorm > this->umaxnorm_hi)
+        return false;
+    
+    if (rmaxnorm < this->umaxnorm_lo)
+        return true;
+
+    if (r1norm >= this->ur1norm)
+      return false;
+    else 
+      return true;
+  }
+  ```
+
+  Nos basamos en una **táctica de descarte**. Como pone al final de nuestro TODO: _It first tags all low power frames as unvoiced. The other ones are checked by rmaxnorm and, if they fall in a "Grey area", we check r1norm (voiced parts tend to change slowly with just a 1 sample lag)_
 
    * Puede serle útil seguir las instrucciones contenidas en el documento adjunto `código.pdf`.
 
@@ -70,13 +119,34 @@ Ejercicios básicos
 		Aunque puede usar el propio Wavesurfer para obtener la representación, se valorará
 	 	el uso de alternativas de mayor calidad (particularmente Python).
 
-    TBD
+    Aquí una captura del pitch que ha estimado `wavesurfer` en el audio *prueba.wav*:
+
+    ![Estimación wavesurfer](img/estimacion_wavesurfer.png)
+
+    Y aquí una comparación de nuestra estimación con la de wavesurfer (hecha con matplotlib). En **verde** podemos ver el valor estimado por `wavesurfer` y en **rojo** la estimación de nuestro programa:
+
+    ![f0 contra f0ref](img/f0_vs_fref.png)
+
+    Como se puede ver, nuestros resultados son bastantes cercanos al Groundtruth establecido por `wavesurfer`, y hay muy pocos fallos por lo que se refiere a la estimación de las partes sonoras/no sonoras. Sin embargo, cabe destacar la presencia de errores groseros (o relativamente grandes) a principios y finales de cada segmento de sonoridad.
   
   * Optimice los parámetros de su sistema de estimación de pitch e inserte una tabla con las tasas de error
     y el *score* TOTAL proporcionados por `pitch_evaluate` en la evaluación de la base de datos 
 	`pitch_db/train`..
 
-    OKAY (mira taules d'altres companys)
+  Estos son los resultados de nuestro programa de estimación de pitch final (con los métodos añadidos en la parte de ampliación):
+
+  **Num. frames evaluated: 11200 = 7045 unvoiced + 4155 voiced**
+
+    | **Error Type**                   | **Number of errors** |   **%**    |
+  |----------------------------------|----------------------|------------|
+  | Unvoiced frames as voiced        | 222/7045             | 3.15 %     |
+  | Voiced frames as unvoiced        | 303/4155             | 7.29 %     |
+  | Gross voiced errors (+20 %)      | 45/3887              | 1.17 %     |
+  | MSE of fine errors               | –                    | 2.84 %     |
+  | **TOTAL**                        | –                    | **92.04 %**|
+
+
+
 
 Ejercicios de ampliación
 ------------------------
@@ -91,18 +161,150 @@ Ejercicios de ampliación
   * Inserte un *pantallazo* en el que se vea el mensaje de ayuda del programa y un ejemplo de utilización
     con los argumentos añadidos.
 
+  PANTALLAZO MENSAJE AYUDA:
+
+  ![Captura mensaje ayuda](img/getPitch_helpMsg.png)
+
+  PANTALLO EJEMPLO UTILIZACIÓN (sólo usando una opción como ejemplo):
+    
+  ![Captura ejemplo comando](img/commandUseExample.png)
+
 - Implemente las técnicas que considere oportunas para optimizar las prestaciones del sistema de estimación
   de pitch.
 
   Entre las posibles mejoras, puede escoger una o más de las siguientes:
 
-  * Técnicas de preprocesado: filtrado paso bajo, diezmado, __*center clipping*__, etc. OKAY (variació threshold com a input entrada)
-  * Técnicas de postprocesado: __filtro de mediana__, *dynamic time warping*, etc. OKAY (variació finestra com a input d'entrada)
-  * Métodos alternativos a la autocorrelación: procesado cepstral, __*average magnitude difference function*__
-    (AMDF), etc. OKAY, pero se ha visto que los resultados no eran mejores y se ha dejado sólo la función
+  * Técnicas de preprocesado: filtrado paso bajo, diezmado, normalizado, *center clipping*, etc.
+  
+  Se ha añadido como técnica de preprocesado:
+  - Un **normalizado de la señal**
+  ```cpp
+  // Frame normalization
+  float max = *std::max_element(x_norm.begin(), x_norm.end());
+  for (int i = 0; i < (int)x_norm.size(); i++)
+    x_norm[i] /= max;
+  ```
+
+  - Un **center clipping** sin *offset* (se puede ver en `pitch_analyzer.cpp` en vez de `get_pitch.cpp`, ya que para el método CORAL, explicado más adelante, se necesita la señal sin clipping)
+  ```cpp
+      // Center clipping for voiced detection
+    vector<float> x_clip = x;
+    for (float &sample : x_clip) {
+      if (fabsf(sample) < this->clip_level) {
+          sample = 0.0f;
+      }
+  ```
+  El `clip_level` se ha añadido como argumento de entrada para poderlo optimizar. Se ha probado de hacer el clipping con *offset* pero nos daba peores prestaciones.
+
+  - El uso de la **ventana Hamming**. Se ha añadido como parámetro opcional a la hora de llamar al `analyzer`. En nuestra versión final NO se usa, ya que devolvía peores prestaciones.
+
+  ```cpp
+  void PitchAnalyzer::set_window(Window win_type) {
+    if (frameLen == 0)
+      return;
+
+    window.resize(frameLen);
+
+    switch (win_type) {
+    case HAMMING:
+      /// \TODO Implement the Hamming window
+      for (unsigned int n = 0; n < frameLen; ++n) {
+        window[n] = 0.54f - 0.46f * cosf(2.0f * M_PI * n / (frameLen - 1));
+      } 
+      /// \DONE Hamming window implemented, though its use is not recommended (RECT windows give better results)
+      break;
+    case RECT:
+    default:
+      window.assign(frameLen, 1); // Square window (1 coefficients for the whole frameLen)
+    }
+  }
+  ```
+
+  * Técnicas de postprocesado: filtro de mediana, *dynamic time warping*, etc.
+
+  Se ha añadido como técnica de postprocesado un **filtro de mediana** con tamaño de ventana ajustable (para optimizarlo cambiando el argumento de entrada):
+
+  ```cpp
+  /// Postprocess: Median filter
+  if (f0.size() >= med_size) {
+      vector<float> f0_med(f0.size());
+      
+      // First y and last frames untouched
+      f0_med[0] = f0[0];
+      f0_med.back() = f0.back();
+      
+      // Median for center frames
+      size_t half = (med_size - 1) / 2;
+      for(size_t i = half; i + half < f0.size() - 1; ++i) {
+        vector<float> window;
+        window.reserve(med_size);
+
+        for (size_t j = i - half; j <= i + half; ++j)
+            window.push_back(f0[j]);
+
+        sort(window.begin(), window.end());
+        f0_med[i] = window[half];   // median
+      }
+      
+      f0 = f0_med;
+  }
+  ```
+
+  * Métodos alternativos a la autocorrelación: procesado cepstral, *average magnitude difference function*
+    (AMDF), etc.
+
+  Se ha probado el uso de la **función AMDF** para calcular el pitch, pero sus prestaciones eran peores (se ha intentado usar como valor de referencia de pitch si la diferencia con el lag de la autocorrelación estaba a una distancia ±20%, pero tampoco mejoraba):
+
+  ```cpp
+  // Pitch estimation AMDF method (not used here since it gives worse performance than Autocorrelation/COSA)
+  void PitchAnalyzer::amdf(const std::vector<float> &x, std::vector<float> &d) const {
+    const unsigned int N = (unsigned int)x.size();
+    const unsigned int L = (unsigned int)d.size(); // npitch_max
+
+    for (unsigned int l = 0; l < L; ++l) { // For all permitted lags
+      float acc = 0.0f;
+
+      for (unsigned int n = 0; n < N - l; ++n) {
+        acc += fabsf(x[n] - x[n + l]);
+      }
+      d[l] = acc / (float)(N-l); // Normalized since we're windowing and not all lags are calculated from the same number of samples
+    }
+  } 
+  ```
+
+  El código que buscaba su mínimo no se incluye en la práctica ya que se ha considerado un método de peores prestaciones.
+
   * Optimización **demostrable** de los parámetros que gobiernan el estimador, en concreto, de los que
-    gobiernan la decisión sonoro/sordo. OKAY
-  * Cualquier otra técnica que se le pueda ocurrir o encuentre en la literatura. OKAY (PRUEBA HAMMING CON ARGUMENTO DE ENTRADA Y COMPARACIÓN CON ARMÓNICO)
+    gobiernan la decisión sonoro/sordo.
+
+  Se han optimizado los valores de los parámetros que gobiernan la decisión sonoro/sordo (a parte de otros parámetros usados para el procesado de señal y estimación de pitch) en el archivo `som-hi.sh`. **Aquí el código que optimiza los parámetros usados para detectar partes V/UV:**
+
+  ```
+  # Buscamos mejor combinación de umbrales para reconocer partes voiced/unvoiced
+  for pot in $(seq -- -8 0.25 -7.5); do
+      for hi in $(seq 0.39 0.01 0.41); do
+          for lo in $(seq 0.28 0.01 0.31); do
+              for r1 in $(seq 0.94 0.02 0.98); do
+                  echo -ne "$pot $hi $lo $r1\t" # Imprime los valores actuales
+                  scripts/run_get_pitch.sh $pot $hi $lo $r1 | grep TOTAL # Ejecuta el Test para los valores actuales y imprime su Fscore total (solo imprimiendo la línea con la palabra "TOTAL")
+              done
+          done
+      done
+  done | sort -t: -k 2n # Ordena resultados por Fscores de mayor a menor
+  ```
+
+
+  * Cualquier otra técnica que se le pueda ocurrir o encuentre en la literatura. 
+  
+  Las siguientes técnicas también han sido usadas:
+
+  - Comparación de nivel con siguiente armónico
+
+  - Algoritmo COSA para detección de pithc
+
+  - Reducción del pitch permitido (reduce computo y mejora prestaciones ligeramente)
+  
+  TBD (COMPARACIÓN CON ARMÓNICO, COSA y REDUCCIÓN PITCH RANGE)
 
   Encontrará más información acerca de estas técnicas en las [Transparencias del Curso](https://atenea.upc.edu/pluginfile.php/2908770/mod_resource/content/3/2b_PS%20Techniques.pdf)
   y en [Spoken Language Processing](https://discovery.upc.edu/iii/encore/record/C__Rb1233593?lang=cat).
@@ -115,7 +317,9 @@ Ejercicios de ampliación
 
   También se valorará la realización de un estudio de los parámetros involucrados. Por ejemplo, si se opta
   por implementar el filtro de mediana, se valorará el análisis de los resultados obtenidos en función de
-  la longitud del filtro. TBD (RESULTADOS OPTIMIZACIÓN CON THRESHOLD CLIPPING DIFERENTE Y VENTANA MEDIANA DIFERENTE)!!!
+  la longitud del filtro. 
+  
+  TBD (RESULTADOS OPTIMIZACIÓN CON THRESHOLD CLIPPING DIFERENTE Y VENTANA MEDIANA DIFERENTE)!!!
    
 
 Evaluación *ciega* del estimador

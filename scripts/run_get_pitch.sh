@@ -8,7 +8,7 @@ CLIP_LEVEL=${5:-0.015}
 MED_SIZE=${6:-3}
 HARM_RATIO=${7:-0.96}
 
-# EXAMPLE USE: get_pitch --uminPot -10 --umaxnorm-hi 0.29 --umaxnorm-lo 0.29 --ur1norm 0.9 prueba.wav prueba.f0
+# EXAMPLE USE: get_pitch --uminPot -8 --umaxnorm-hi 0.4 --umaxnorm-lo 0.3 --ur1norm 0.96 --clip-level 0.015 --med-size 3 --harm-ratio 0.96 prueba.wav prueba.f0
 
 # Establecemos que el código de retorno de un pipeline sea el del último programa con código de retorno
 # distinto de cero, o cero si todos devuelven cero.

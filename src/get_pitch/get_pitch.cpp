@@ -27,13 +27,13 @@ Usage:
     get_pitch --version
 
 Options:
-    --uminPot FLOAT Upper threshold for power in unvoiced decision [default: -19.5]
-    --umaxnorm-hi FLOAT  Lower voiced threshold for lag-power ratio [default: 0.57]
-    --umaxnorm-lo FLOAT  Upper unvoiced threshold for lag-power ratio [default: 0.19]
-    --ur1norm FLOAT Lower threshold for r1norm when found in gray area, in voiced decision [default: 0.86]
-    --clip-level FLOAT Threshold for center clipping [default: 0.007]
-    --med-size INT Size of the median filter windown [default: 3]
-    --harm-ratio FLOAT Level comparison with lag*2 [default: 0.96]
+    --uminPot=FLOAT Upper threshold for power in unvoiced decision [default: -8]
+    --umaxnorm-hi=FLOAT  Lower voiced threshold for lag-power ratio [default: 0.4]
+    --umaxnorm-lo=FLOAT  Upper unvoiced threshold for lag-power ratio [default: 0.3]
+    --ur1norm=FLOAT Lower threshold for r1norm when found in gray area, in voiced decision [default: 0.96]
+    --clip-level=FLOAT Threshold for center clipping [default: 0.015]
+    --med-size=INT Size of the median filter windown [default: 3]
+    --harm-ratio=FLOAT Level comparison with lag*2 [default: 0.96]
     -h, --help  Show this screen
     --version   Show the version of the project
 
@@ -45,7 +45,7 @@ Arguments:
 )";
 
 int main(int argc, const char *argv[]) {
-	/// \TODO  DONE?
+	/// \TODO
 	///  Modify the program syntax and the call to **docopt()** in order to
 	///  add options and arguments to the program.
     std::map<std::string, docopt::value> args = docopt::docopt(USAGE,
@@ -55,13 +55,21 @@ int main(int argc, const char *argv[]) {
 
 	std::string input_wav = args["<input-wav>"].asString();
 	std::string output_txt = args["<output-txt>"].asString();
-    float uminPot = std::stof(args["--uminPot"].asString());
-    float umaxnorm_hi = std::stof(args["--umaxnorm-hi"].asString());
-    float umaxnorm_lo = std::stof(args["--umaxnorm-lo"].asString());
-    float ur1norm = std::stof(args["--ur1norm"].asString());
-    float clip_level = std::stof(args["--clip-level"].asString());
-    unsigned int med_size = std::stof(args["--med-size"].asString());
-    float harm_ratio = std::stof(args["--harm-ratio"].asString());
+
+  // Default values are not working (it runs into an error if no option is inputted), so we will add the defaults as standard fallback when an option is empty
+  auto get_float_or = [&](const std::string& key, float def) -> float {
+      return !args[key] ? def : std::stof(args[key].asString());
+  };
+
+    float uminPot = get_float_or("--uminPot", -8);  // Example default; adjust as needed
+    float umaxnorm_hi = get_float_or("--umaxnorm-hi", 0.4f);
+    float umaxnorm_lo = get_float_or("--umaxnorm-lo", 0.3f);
+    float ur1norm = get_float_or("--ur1norm", 0.96f);
+    float clip_level = get_float_or("--clip-level", 0.015f);
+    unsigned int med_size = static_cast<unsigned int>(get_float_or("--med-size", 3));  // Cast since med_size is unsigned int
+    float harm_ratio = get_float_or("--harm-ratio", 0.96f);
+
+  /// \DONE Options have been added to choose all thresholds, clip level and median filter window size
 
   // Read input sound file
   unsigned int rate;
@@ -75,48 +83,29 @@ int main(int argc, const char *argv[]) {
   int n_shift = rate * FRAME_SHIFT;
 
   // Define analyzer
-  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 350, uminPot, umaxnorm_hi, umaxnorm_lo, ur1norm, harm_ratio); // We send 50Hz and 350Hz as the pitch range (we override the constants 20Hz-10000Hz)
+  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 350, uminPot, umaxnorm_hi, umaxnorm_lo, ur1norm, harm_ratio, clip_level); // We send 50Hz and 350Hz as the pitch range (we override the constants 20Hz-10000Hz)
 
-  /// \TODO --> DONE?
+  /// \TODO
   /// Preprocess the input signal in order to ease pitch estimation. For instance,
   /// central-clipping or low pass filtering may be used.
-  vector<float> x_processed = x;
+  vector<float> x_norm = x;
 
   // Frame normalization
-  float max = *std::max_element(x_processed.begin(), x_processed.end());
-  for (int i = 0; i < (int)x_processed.size(); i++)
-    x_processed[i] /= max;
+  float max = *std::max_element(x_norm.begin(), x_norm.end());
+  for (int i = 0; i < (int)x_norm.size(); i++)
+    x_norm[i] /= max;
+
+  /// \DONE The input signal has been normalized, and central-clipping has been added (the latter is included in pitch_analyzer.cpp)
   
-  // Center clipping --> Noise has low amplitude -> we eliminate it -> harmonics are intensified
-
-  // Without offset
-  for (float &sample : x_processed) {
-      if (fabsf(sample) < clip_level) {
-          sample = 0.0f;
-      }
-  }
-
-  // With offset (worse performance, from what we've tried)
-//   for (float &sample : x_processed) {
-//       if (fabsf(sample) < clip_level) {
-//           sample = 0.0f;
-//       }else if (sample < 0){
-//         sample = sample + clip_level;
-//       }else{
-//         sample = sample - clip_level;
-//       }
-//   }
-
   vector<float>::iterator iX;
   vector<float> f0;
 
-  for (iX = x_processed.begin(); iX + n_len < x_processed.end(); iX = iX + n_shift) {
+  for (iX = x_norm.begin(); iX + n_len < x_norm.end(); iX = iX + n_shift) {
       float f = analyzer(iX, iX + n_len);
       f0.push_back(f);
   }
 
-
-  /// \TODO --> DONE?
+  /// \TODO
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
   /// or time-warping may be used.
 
@@ -143,6 +132,7 @@ int main(int argc, const char *argv[]) {
       
       f0 = f0_med;
   }
+  /// \DONE A median filter has been added, with custom window length based on the input argument --med-size
 
   // Write f0 contour into the output file
   ofstream os(output_txt);

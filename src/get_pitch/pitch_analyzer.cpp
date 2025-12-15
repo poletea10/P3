@@ -30,8 +30,7 @@ namespace upc {
       r[0] = 1e-10; 
   }
 
-  // Método estimación pitch AMDF
-  // No es tan bueno como la autocorrelacion
+  // Pitch estimation AMDF method (not used here since it gives worse performance than Autocorrelation/COSA)
   void PitchAnalyzer::amdf(const std::vector<float> &x, std::vector<float> &d) const {
     const unsigned int N = (unsigned int)x.size();
     const unsigned int L = (unsigned int)d.size(); // npitch_max
@@ -46,6 +45,7 @@ namespace upc {
     }
   } 
 
+
   void PitchAnalyzer::set_window(Window win_type) {
     if (frameLen == 0)
       return;
@@ -54,10 +54,11 @@ namespace upc {
 
     switch (win_type) {
     case HAMMING:
-      /// \TODO Implement the Hamming window --> DONE? --> No es tan eficiente como usar ventanas rectangulares
+      /// \TODO Implement the Hamming window
       for (unsigned int n = 0; n < frameLen; ++n) {
         window[n] = 0.54f - 0.46f * cosf(2.0f * M_PI * n / (frameLen - 1));
       } 
+      /// \DONE Hamming window implemented, though its use is not recommended (RECT windows give better results)
       break;
     case RECT:
     default:
@@ -100,65 +101,104 @@ namespace upc {
       return false;
     else 
       return true;
+
+    /// \DONE Voiced/Unvoiced detector implemented \n
+    /// It first tags all low power frames as unvoiced. The other ones are checked by rmaxnorm and, if they fall in a "Grey area", we check r1norm (voiced parts tend to change slowly with just a 1 sample lag)
   }
 
   float PitchAnalyzer::compute_pitch(vector<float> & x) const {
     if (x.size() != frameLen)
       return -1.0F;
 
-    //Window input frame
-    for (unsigned int i=0; i<x.size(); ++i)
+    // Center clipping for voiced detection
+    vector<float> x_clip = x;
+    for (float &sample : x_clip) {
+      if (fabsf(sample) < this->clip_level) {
+          sample = 0.0f;
+      }
+    }
+
+    //Window input frame (for clipped and non-clipped signal)
+    for (unsigned int i=0; i<x.size(); ++i){
       x[i] *= window[i];
+      x_clip[i] *= window[i];
+    }
 
     // r will hold the autocorrelation values for lags from 0 to npitch_max-1 (max lag = lowest freq)
-    vector<float> r(npitch_max);
+    vector<float> r_clip(npitch_max);
+    vector<float> r_cosa(npitch_max);
 
     //Compute correlation
-    autocorrelation(x, r);
+    autocorrelation(x_clip, r_clip);
 
-    vector<float>::const_iterator iR = r.begin(), iRMax = iR; // We create two iterators that, at this instant, point to the first element of r
+    autocorrelation(x, r_cosa);
+    r_cosa[0] = 100*r_cosa[0]; // Multiply by K = 0 to reduce COSA oscillation
+    r_cosa[0] = r_cosa[0]*0.5; // Now we have the one-sided autocorrelation (with reduce COSA oscillation)
+
+    // Complex cepstrum of the one-sided correlation (COSA)
+    vector<float> COSA(npitch_max);
+    COSA[0]=log10(r_cosa[0]);
+    for (unsigned int n = 1; n < COSA.size(); ++n) {
+
+        float s = 0.0f;
+
+        // s = sum_{k=1..n-1} (k/n) * Cplus[k] * Rplus[n-k]
+        for (unsigned int k = 1; k < n; ++k) {
+            s += ((float)k / (float)n) * COSA[k] * r_cosa[n - k];
+        }
+
+        // Cplus[n] = (Rplus[n] - s) / Rplus[0]
+        COSA[n] = (r_cosa[n] - s) / r_cosa[0];
+    }
+
+    vector<float>::const_iterator iR_clip = r_clip.begin(), iRMax_clip = iR_clip; // We create two iterators that, at this instant, point to the first element of r
+
+    vector<float>::const_iterator iR_cosa = COSA.begin(), iRMax_cosa = iR_cosa;
 
     /// \TODO 
-	/// Find the lag of the maximum value of the autocorrelation away from the origin.<br>
-	/// Choices to set the minimum value of the lag are:
-	///    - The first negative value of the autocorrelation.
-	///    - The lag corresponding to the maximum value of the pitch.
-    ///	   .
-	/// In either case, the lag should not exceed that of the minimum value of the pitch.
+    /// Find the lag of the maximum value of the autocorrelation away from the origin.<br>
+    /// Choices to set the minimum value of the lag are:
+    ///    - The first negative value of the autocorrelation.
+    ///    - The lag corresponding to the maximum value of the pitch.
+    /// In either case, the lag should not exceed that of the minimum value of the pitch.
 
-    iRMax = std::max_element(iR + npitch_min, iR + npitch_max); // Returns the iterator pointing at the max position between npitch_min (smallest lag) & npitch_max (biggest lag)
+    iRMax_clip = std::max_element(iR_clip + npitch_min, iR_clip + npitch_max); // Returns the iterator pointing at the max position between npitch_min (smallest lag) & npitch_max (biggest lag)
 
-    unsigned int lagR = iRMax - r.begin(); // Computes the index (lag) of the maximum in that range (position of max iterator - pointer at the beginning)
+    unsigned int lagR_clip = iRMax_clip - r_clip.begin(); // Computes the index (lag) of the maximum in that range (position of max iterator - pointer at the beginning)
     // Now lag is the number of samples corresponding to our estimated pitch period!
 
-    if (npitch_max>=lagR*2 && r[lagR/2] >= this->harm_ratio * r[lagR]) // If largR/2 is really similar to lagR, we might be looking at a harmonic (harmonic consistency). So the fundamental should be at lagR*2
-        lagR = lagR*2;
+    iRMax_cosa = std::max_element(iR_cosa + npitch_min, iR_cosa + npitch_max);
 
+    unsigned int lagR_cosa = iRMax_cosa - COSA.begin();
 
-    // AMDF for comparison (worse performance, more gross errors)
-    // vector<float> d(npitch_max);
-    // amdf(x,d);
+    // Check gross errors
+    unsigned int bestLag = lagR_clip;
+    float ratio = (float)lagR_cosa / (float)lagR_clip;
 
-    // vector<float>::const_iterator iD = d.begin(), iDMin = iD;
+    if (npitch_max>=lagR_clip*2 && r_clip[lagR_clip/2] >= this->harm_ratio * r_clip[lagR_clip]){ // If largR/2 is really similar to lagR, we might be looking at a harmonic (harmonic consistency). So the fundamental should be at lagR*2
+        lagR_clip = lagR_clip*2;
+        bestLag = lagR_cosa;
+    }
 
-    // iDMin = std::min_element(iD + npitch_min, iD + npitch_max);
-    // unsigned int lagD = iDMin - d.begin();
+    // if lagR_cosa is above +20% of lagR_clip (normally gross errors are caused by overestimating the pitch, so we should get the lower pitch/higher lag)
+    if (ratio >= 1.2f)
+        bestLag = lagR_cosa;
 
-      
     /// \DONE Lag of maximum value implemented \n
     /// Since we've already set a minimum and maximum pitch (the code came like this), we used the second option: 
-    /// the minimum lag value permitted is the one corresponding to the inputted maximum value of the pitch (F=500 in get_pitch.cpp). 
-    /// The maximum lag value permitted (we won't go above it using std::max_element) is the one corresponding to the inputted minimum value of the pitch  (F=50 in get_pitch.cpp)
+    /// The minimum lag value permitted is the one corresponding to the inputted maximum value of the pitch (F=350 in get_pitch.cpp). 
+    /// The maximum lag value permitted (we won't go above it using std::max_element) is the one corresponding to the inputted minimum value of the pitch (F=50 in get_pitch.cpp) \n
+    /// A lag that is very similar to its lag/2 counterpart is considered a harmonic, and if the lag measured by COSA is 20% bigger than the lag measured by autocorrelation, we choose the COSA lag (autocorrelation might have overestimated the pitch)
 
-    float pot = 10 * log10(r[0]); // Power of current window -> Good for voicing decision, since unvoiced parts have low energy, and vice versa
+    float pot = 10 * log10(r_clip[0]); // Power of current window -> Good for voicing decision, since unvoiced parts have low energy, and vice versa
 #if 0
     if (r[0] > 0.0F)
       cout << pot << '\t' << r[1]/r[0] << '\t' << r[lag]/r[0] << endl;
 #endif
     
-    if (unvoiced(pot, r[1]/r[0], r[lagR]/r[0])) // If unvoiced returns True, we set pitch as 0
+    if (unvoiced(pot, r_clip[1]/r_clip[0], r_clip[lagR_clip]/r_clip[0])) // If unvoiced returns True, we set pitch as 0
       return 0;
     else
-      return (float) samplingFreq/(float) lagR; // Returns pitch (samplingFreq / lag)
+      return (float) samplingFreq/(float) bestLag; // Returns pitch (samplingFreq / lag)
   }
 }

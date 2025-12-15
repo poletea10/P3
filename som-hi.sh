@@ -1,16 +1,16 @@
 #! /usr/bin/bash
 
 # Buscamos mejor combinación de umbrales para reconocer partes voiced/unvoiced
-# for pot in $(seq -- -8 0.25 -7.5); do
-#     for hi in $(seq 0.39 0.01 0.41); do
-#         for lo in $(seq 0.28 0.01 0.31); do
-#             for r1 in $(seq 0.94 0.02 0.98); do
-#                 echo -ne "$pot $hi $lo $r1\t" # Imprime los valores actuales
-#                 scripts/run_get_pitch.sh $pot $hi $lo $r1 | grep TOTAL # Ejecuta el Test para los valores actuales y imprime su Fscore total (solo imprimiendo la línea con la palabra "TOTAL")
-#             done
-#         done
-#     done
-# done | sort -t: -k 2n # Ordena resultados por Fscores de mayor a menor
+for pot in $(seq -- -8 0.25 -7.5); do
+    for hi in $(seq 0.39 0.01 0.41); do
+        for lo in $(seq 0.28 0.01 0.31); do
+            for r1 in $(seq 0.94 0.02 0.98); do
+                echo -ne "$pot $hi $lo $r1\t" # Imprime los valores actuales
+                scripts/run_get_pitch.sh $pot $hi $lo $r1 | grep TOTAL # Ejecuta el Test para los valores actuales y imprime su Fscore total (solo imprimiendo la línea con la palabra "TOTAL")
+            done
+        done
+    done
+done | sort -t: -k 2n # Ordena resultados por Fscores de mayor a menor
 
 # -8.00 0.40 0.30 0.96    ===>    TOTAL:  92.04 %
 
