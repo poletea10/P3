@@ -26,7 +26,6 @@ Ejercicios básicos
 
    * Complete el cálculo de la autocorrelación e inserte a continuación el código correspondiente.
    
-    Se ha decidido calcular la autocorrelación sin normalizar por N, ya que los parámetros se optimizaron para esta función:
 
    ```cpp
   void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) const {
@@ -36,13 +35,14 @@ Ejercicios básicos
       for(unsigned int n=0; n<x.size()-l; n++){
           r[l] += x[n]*x[n + l];
       }
+      r[l]=r[l]/static_cast<float>(x.size());
     }
 
-    if (r[0] == 0.0F)
+
+    if (r[0] == 0.0F) //to avoid log() and divide zero 
+      r[0] = 1e-10; 
   }
    ```
-
-   Realmente las prestaciones serían las mismas si normalizásemos, sólo que aquí r[0] representa la energía de la señal y normalizado sería la potencia.
 
    * Inserte una gŕafica donde, en un *subplot*, se vea con claridad la señal temporal de un segmento de
      unos 30 ms de un fonema sonoro y su periodo de pitch; y, en otro *subplot*, se vea con claridad la
@@ -110,7 +110,18 @@ Ejercicios básicos
 	    Recuerde configurar los paneles de datos para que el desplazamiento de ventana sea el adecuado, que
 		en esta práctica es de 15 ms.
 
-    TBD (#IF 1)
+    Aquí podemos ver la comparación entre la estimación de pitch hecha por `wavesurfer` y nuestras métricas:
+
+    ![Pitch vs metricas](img/comparacion_metricas.png)
+
+    Tras observar la relación entre las métricas disponibles y la estimación de pitch esperada, hemos inferido este protocolo para determinar la sonoridad de una trama:
+
+    **Táctica de descarte:** 
+    Cuando hay muy **poca potencia** en la trama, está se puede **clasificar directamente como UV**. **En potencias altas aún se han de hacer más pruebas** para confirmar sonoridad (como se puede ver en la parte de las tramas 75-100).
+
+    Para las tramas que tienen potencia alta, **pasamos a fijarnos en rmaxnorm**. En general, los **rmaxnorm altos** corresponden a las **partes sonoras**, y **los bajos** a las **partes no sonoras**. Sin embargo, hay valores de rmaxnorm intermedios que se consideran **"zonas grises"**, ya que no indican bien si es una parte sonora o no. Esto se puede ver en la primera parte sonora del gráfico anterior.
+
+    Cuando rmaxnorm se encuentra en un punto intermedio, donde la sonoridad es aún dudosa, **pasamos a mirar r1norm**. Un **r1norm bajo**, dado que nos encontramos en una "zona dudosa", acostumbra siempre a indicar que es una **parte UV**. Por otra parte, si estamos en la "zona dudosa" y **r1norm es alto**, entonces será una **parte sonora**.
 
       - Use el estimador de pitch implementado en el programa `wavesurfer` en una señal de prueba y compare
 	    su resultado con el obtenido por la mejor versión de su propio sistema.  Inserte una gráfica
@@ -141,9 +152,9 @@ Ejercicios básicos
   |----------------------------------|----------------------|------------|
   | Unvoiced frames as voiced        | 222/7045             | 3.15 %     |
   | Voiced frames as unvoiced        | 303/4155             | 7.29 %     |
-  | Gross voiced errors (+20 %)      | 45/3887              | 1.17 %     |
-  | MSE of fine errors               | –                    | 2.84 %     |
-  | **TOTAL**                        | –                    | **92.04 %**|
+  | Gross voiced errors (+20 %)      | 48/3887              | 1.25 %     |
+  | MSE of fine errors               | –                    | 2.83 %     |
+  | **TOTAL**                        | –                    | **92.03 %**|
 
 
 
@@ -185,14 +196,14 @@ Ejercicios de ampliación
     x_norm[i] /= max;
   ```
 
-  - Un **center clipping** sin *offset* (se puede ver en `pitch_analyzer.cpp` en vez de `get_pitch.cpp`, ya que para el método CORAL, explicado más adelante, se necesita la señal sin clipping)
+  - Un **center clipping** sin *offset* (se hace en `pitch_analyzer.cpp` en vez de `get_pitch.cpp`, ya que para el método COSA, explicado más adelante, se necesita la señal sin clipping. *Clipear* la señal antes de enviarla a `pitch_analyzer.cpp` imposibilita el uso del método COSA).
   ```cpp
-      // Center clipping for voiced detection
-    vector<float> x_clip = x;
-    for (float &sample : x_clip) {
-      if (fabsf(sample) < this->clip_level) {
-          sample = 0.0f;
-      }
+  // Center clipping for voiced detection
+  vector<float> x_clip = x;
+  for (float &sample : x_clip) {
+    if (fabsf(sample) < this->clip_level) {
+      sample = 0.0f;
+    }
   ```
   El `clip_level` se ha añadido como argumento de entrada para poderlo optimizar. Se ha probado de hacer el clipping con *offset* pero nos daba peores prestaciones.
 
@@ -227,26 +238,26 @@ Ejercicios de ampliación
   ```cpp
   /// Postprocess: Median filter
   if (f0.size() >= med_size) {
-      vector<float> f0_med(f0.size());
+    vector<float> f0_med(f0.size());
       
-      // First y and last frames untouched
-      f0_med[0] = f0[0];
-      f0_med.back() = f0.back();
+    // First y and last frames untouched
+    f0_med[0] = f0[0];
+    f0_med.back() = f0.back();
       
-      // Median for center frames
-      size_t half = (med_size - 1) / 2;
-      for(size_t i = half; i + half < f0.size() - 1; ++i) {
-        vector<float> window;
-        window.reserve(med_size);
+    // Median for center frames
+    size_t half = (med_size - 1) / 2;
+    for(size_t i = half; i + half < f0.size() - 1; ++i) {
+      vector<float> window;
+      window.reserve(med_size);
 
-        for (size_t j = i - half; j <= i + half; ++j)
-            window.push_back(f0[j]);
+      for (size_t j = i - half; j <= i + half; ++j)
+        window.push_back(f0[j]);
 
-        sort(window.begin(), window.end());
-        f0_med[i] = window[half];   // median
-      }
+      sort(window.begin(), window.end());
+      f0_med[i] = window[half];   // median
+    }
       
-      f0 = f0_med;
+    f0 = f0_med;
   }
   ```
 
@@ -272,7 +283,7 @@ Ejercicios de ampliación
   } 
   ```
 
-  El código que buscaba su mínimo no se incluye en la práctica ya que se ha considerado un método de peores prestaciones.
+  La parte del código que buscaba su mínimo no se ha acabado incluyendo ya que este método daba peores prestaciones.
 
   * Optimización **demostrable** de los parámetros que gobiernan el estimador, en concreto, de los que
     gobiernan la decisión sonoro/sordo.
@@ -281,7 +292,7 @@ Ejercicios de ampliación
 
   ```
   # Buscamos mejor combinación de umbrales para reconocer partes voiced/unvoiced
-  for pot in $(seq -- -8 0.25 -7.5); do
+  for pot in $(seq -- -34 0.1 -36); do
       for hi in $(seq 0.39 0.01 0.41); do
           for lo in $(seq 0.28 0.01 0.31); do
               for r1 in $(seq 0.94 0.02 0.98); do
@@ -298,13 +309,75 @@ Ejercicios de ampliación
   
   Las siguientes técnicas también han sido usadas:
 
-  - Comparación de nivel con siguiente armónico
-
-  - Algoritmo COSA para detección de pithc
-
-  - Reducción del pitch permitido (reduce computo y mejora prestaciones ligeramente)
+  - **Comparación de nivel con siguiente armónico**
   
-  TBD (COMPARACIÓN CON ARMÓNICO, COSA y REDUCCIÓN PITCH RANGE)
+  Se ha detectado que una **gran parte de los errores groseros vienen de detectar el segundo armónico en vez de la frecuencia fundamental**. Una buena manera de ver si esto ha ocurrido (comprobado después de hacer varios experimentos) es **comparando `r[lag]` con `r[lag/2]`** (el pico detectado con el pico del siguiente armónico) -> si son muy parecidos, seguramente estamos mirando al segundo y tercer armónico (la frecuencia fundamental acostumbra a tener mucha diferencia respecto el segundo armónico).
+
+  **Cuando detectamos este error, cambiamos el valor del lag actual a `lag=lag*2`.** De esta manera, cojemos la frecuencia fundamental. Aquí la parte del código que lo hace:
+
+  ```cpp
+  if (npitch_max>=lagR_clip*2 && r_clip[lagR_clip/2] >= this->harm_ratio * r_clip[lagR_clip]){ // If largR/2 is really similar to lagR, we might be looking at a harmonic (harmonic consistency). So the fundamental should be at lagR*2
+    lagR_clip = lagR_clip*2;
+    bestLag = lagR_clip*2;
+  }
+  ```
+
+  **Se diferencian `lagR_clip` y `bestLag` ya que uno lo usamos para detectar sonoridad y el otro para el pitch.** `lagR_clip` sólo usa lags obtenidos a partir de la autocorrelación, mientras que `bestLag` mezcla la predicción de la autocorrelación y la del algoritmo COSA (más adelante). No se usa el algoritmo COSA para detectar sonoridad ya que en el paper original se dice que no tiene tan buenas prestaciones para esa tarea.
+
+  - **Algoritmo COSA** para detección de pitch
+
+  Para **reducir el número de errores groseros**, también se ha implementado el **algoritmo COSA para detectar pitch**. Para entender bien su funcionamiento se puede leer su [paper original](https://upcommons.upc.edu/server/api/core/bitstreams/3dc9625f-f112-4584-85c7-99927427185d/content).
+
+  En resumen, **el algoritmo COSA estima el pitch calculando el cepstrum de la autocorrelación unilateral de la señal**, lo que permite atenuar la influencia de los formantes y del ruido sin recurrir a center clipping. Esta transformación destaca de forma más robusta el pico asociado al período fundamental, especialmente en segmentos no estacionarios, reduciendo así el número de errores groseros.
+  
+  Aquí la parte del código que calcula el cepstrum complejo y encuentra su máximo (con K=100, recomendada en el paper):
+
+  ```cpp
+  vector<float> r_cosa(npitch_max);
+
+  autocorrelation(x, r_cosa);
+  r_cosa[0] = 100*r_cosa[0]; // Multiply by K = 100 to reduce COSA oscillation
+  r_cosa[0] = r_cosa[0]*0.5; // Now we have the one-sided autocorrelation (with reduced COSA oscillation)
+
+  // Complex cepstrum of the one-sided correlation (COSA)
+  vector<float> COSA(npitch_max);
+  COSA[0]=log10(r_cosa[0]);
+  for (unsigned int n = 1; n < COSA.size(); ++n) {
+
+    float s = 0.0f;
+
+    // s = sum_{k=1..n-1} (k/n) * Cplus[k] * Rplus[n-k]
+    for (unsigned int k = 1; k < n; ++k) {
+        s += ((float)k / (float)n) * COSA[k] * r_cosa[n - k];
+    }
+
+    // Cplus[n] = (Rplus[n] - s) / Rplus[0]
+    COSA[n] = (r_cosa[n] - s) / r_cosa[0];
+  }
+
+  vector<float>::const_iterator iR_cosa = COSA.begin(), iRMax_cosa = iR_cosa;
+
+  iRMax_cosa = std::max_element(iR_cosa + npitch_min, iR_cosa + npitch_max);
+
+  unsigned int lagR_cosa = iRMax_cosa - COSA.begin();
+  ```
+  
+  Cabe destacar que: (1) como este algoritmo no recurre al center clipping, el preprocesado se hace por separado en `pitch_analyzer.cpp`, y (2) el método COSA destaca por su reducción de errores groseros, NO por una mejor detección de sonoridad. Por lo tanto, **sólo usamos el valor del lagR_cosa como *fallback* cuando se detecta una distancia de +20% respecto el lag obtenido con la autocorrelación**:
+
+  ```cpp
+  unsigned int bestLag = lagR_clip;
+  float ratio = (float)lagR_cosa / (float)lagR_clip;
+
+  // if lagR_cosa is above +20% of lagR_clip (normally gross errors are caused by overestimating the pitch, so we should get the lower pitch/higher lag)
+  if (ratio >= 1.2f)
+        bestLag = lagR_cosa;
+  ```
+
+  - **Reducción del rango de pitch permitido** (reduce computo y mejora prestaciones ligeramente)
+
+  El rango de pitch permitido originalmente era de 50Hz a 500Hz. Sin embargo, hemos visto que este rango es demasiado ancho y no ayuda a las prestaciones de nuestro sistema de estimación de pitch, sobretodo porque lo hace menos robusto a la detección (errónea) de segundos armónicos. Para mejorarlo, **hemos reducido el rango de pitch a 50Hz-350Hz** (que además de mejorar las prestaciones, reduce el computo al buscar el máximo en un intervalo npitch_min-npitch_max menor).
+
+  --
 
   Encontrará más información acerca de estas técnicas en las [Transparencias del Curso](https://atenea.upc.edu/pluginfile.php/2908770/mod_resource/content/3/2b_PS%20Techniques.pdf)
   y en [Spoken Language Processing](https://discovery.upc.edu/iii/encore/record/C__Rb1233593?lang=cat).
@@ -313,13 +386,32 @@ Ejercicios de ampliación
   Incluya, a continuación, una explicación de las técnicas incorporadas al estimador. Se valorará la
   inclusión de gráficas, tablas, código o cualquier otra cosa que ayude a comprender el trabajo realizado.
 
-  TBD (EXPLICACIÓN CHATGPT DE LAS TÉCNICAS INCORPORADAS AL ESTIMADOR)
+  **RESUMEN TÉCNICAS INCORPORADAS AL ESTIMADOR:**
+  - Como preprocesado inicial, **cada trama es normalizada respecto su valor máximo**
+  - Después la trama se envía al analyzer, con el **rango de pitch permitido siendo 50Hz-350Hz**
+  - Dentro del analyzer, se calcula **(1)** el **lag** correspondiente al segundo máximo de la __autocorrelación de la señal con *center-clipping* sin *offset*__, y **(2)** el **lag** correspondiente al **segundo máximo del COSA** (*"cepstrum of the one-sided autocorrelation"*), para la señal SIN *center-clipping*
+  - Para evitar *gross errors*, se hace la **comparación con el siguiente armónico** (para ver si estamos realmente en la frecuencia fundamental) y también hacemos la **comparación de ambos lags** (`lagR_clip` vs `lagR_cosa`; en caso de *gross error* superior, nos quedamos con `lagR_cosa`)
+  - Para **detectar la sonoridad**, se usa la **"táctica de descarte"** con varios umbrales explicada en la parte básica
+  - Como técnica de post-procesado, usamos un **filtro de mediana con tamaño de venta 3**.
 
   También se valorará la realización de un estudio de los parámetros involucrados. Por ejemplo, si se opta
   por implementar el filtro de mediana, se valorará el análisis de los resultados obtenidos en función de
   la longitud del filtro. 
   
-  TBD (RESULTADOS OPTIMIZACIÓN CON THRESHOLD CLIPPING DIFERENTE Y VENTANA MEDIANA DIFERENTE)!!!
+  Aquí un análisis de **como varían las métricas** (% de error y % de score) **según los siguientes parámetros**:
+
+  - **Umbral center clipping sin offset**
+
+  ![Captura sweep clip](img/sweep_center_clipping.png)
+
+  - **Longitud filtro de mediana**
+
+  ![Captura sweep median](img/sweep_median_window.png)
+
+
+  Los otros parámetros se han dejado en su valor *default* para hacer un análisis aislado de ambos. Hemos usado el archivo `analisis_parametros.sh` para ver como varían las métricas, graficando después los resultados con python. 
+  
+  IMPORTANTE! Fíjase en las escalas del eje Y, ya que son diferentes para ambos análisis. La variación del umbral para center-clipping produce cambios más pequeños en las métricas que la variación de la longitud del filtro de mediana.
    
 
 Evaluación *ciega* del estimador

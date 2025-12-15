@@ -16,10 +16,11 @@ namespace upc {
       for(unsigned int n=0; n<x.size()-l; n++){
           r[l] += x[n]*x[n + l];
       }
+      r[l]=r[l]/static_cast<float>(x.size());
       /**   
        \DONE Autocorrelation implemented
        \f[
-       r[l] = \sum_{n=0}^{N-l} x_i^*[n] x_i[n+l]
+       r[l] = (1/N)*\sum_{n=0}^{N-l} x_i^*[n] x_i[n+l]
        \f]
        - Inicializamos la autocorrelacion a 0.
        - Sumamos la multiplicacion con la señal desplazada.
@@ -132,7 +133,7 @@ namespace upc {
     autocorrelation(x_clip, r_clip);
 
     autocorrelation(x, r_cosa);
-    r_cosa[0] = 100*r_cosa[0]; // Multiply by K = 0 to reduce COSA oscillation
+    r_cosa[0] = 100*r_cosa[0]; // Multiply by K = 100 to reduce COSA oscillation
     r_cosa[0] = r_cosa[0]*0.5; // Now we have the one-sided autocorrelation (with reduce COSA oscillation)
 
     // Complex cepstrum of the one-sided correlation (COSA)
@@ -177,7 +178,7 @@ namespace upc {
 
     if (npitch_max>=lagR_clip*2 && r_clip[lagR_clip/2] >= this->harm_ratio * r_clip[lagR_clip]){ // If largR/2 is really similar to lagR, we might be looking at a harmonic (harmonic consistency). So the fundamental should be at lagR*2
         lagR_clip = lagR_clip*2;
-        bestLag = lagR_cosa;
+        bestLag = lagR_clip*2;
     }
 
     // if lagR_cosa is above +20% of lagR_clip (normally gross errors are caused by overestimating the pitch, so we should get the lower pitch/higher lag)
@@ -192,8 +193,8 @@ namespace upc {
 
     float pot = 10 * log10(r_clip[0]); // Power of current window -> Good for voicing decision, since unvoiced parts have low energy, and vice versa
 #if 0
-    if (r[0] > 0.0F)
-      cout << pot << '\t' << r[1]/r[0] << '\t' << r[lag]/r[0] << endl;
+    if (r_clip[0] > 0.0F)
+      cout << pot << '\t' << r_clip[1]/r_clip[0] << '\t' << r_clip[lagR_clip]/r_clip[0] << endl;
 #endif
     
     if (unvoiced(pot, r_clip[1]/r_clip[0], r_clip[lagR_clip]/r_clip[0])) // If unvoiced returns True, we set pitch as 0

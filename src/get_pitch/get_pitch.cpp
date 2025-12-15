@@ -27,7 +27,7 @@ Usage:
     get_pitch --version
 
 Options:
-    --uminPot=FLOAT Upper threshold for power in unvoiced decision [default: -8]
+    --uminPot=FLOAT Upper threshold for power in unvoiced decision [default: -35.8]
     --umaxnorm-hi=FLOAT  Lower voiced threshold for lag-power ratio [default: 0.4]
     --umaxnorm-lo=FLOAT  Upper unvoiced threshold for lag-power ratio [default: 0.3]
     --ur1norm=FLOAT Lower threshold for r1norm when found in gray area, in voiced decision [default: 0.96]
@@ -61,7 +61,7 @@ int main(int argc, const char *argv[]) {
       return !args[key] ? def : std::stof(args[key].asString());
   };
 
-    float uminPot = get_float_or("--uminPot", -8);  // Example default; adjust as needed
+    float uminPot = get_float_or("--uminPot", -35.8);  // Example default; adjust as needed
     float umaxnorm_hi = get_float_or("--umaxnorm-hi", 0.4f);
     float umaxnorm_lo = get_float_or("--umaxnorm-lo", 0.3f);
     float ur1norm = get_float_or("--ur1norm", 0.96f);

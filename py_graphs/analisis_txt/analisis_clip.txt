@@ -1,0 +1,156 @@
+0.000
+TOTAL:  Unvoiced frames as voiced:      290/7045 (4.12 %)
+TOTAL:  Voiced frames as unvoiced:      285/4155 (6.86 %)
+TOTAL:  Gross voiced errors (+20.00 %): 51/3870 (1.32 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  91.57 %
+0.001
+TOTAL:  Unvoiced frames as voiced:      290/7045 (4.12 %)
+TOTAL:  Voiced frames as unvoiced:      285/4155 (6.86 %)
+TOTAL:  Gross voiced errors (+20.00 %): 51/3870 (1.32 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  91.57 %
+0.002
+TOTAL:  Unvoiced frames as voiced:      289/7045 (4.10 %)
+TOTAL:  Voiced frames as unvoiced:      285/4155 (6.86 %)
+TOTAL:  Gross voiced errors (+20.00 %): 51/3870 (1.32 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  91.58 %
+0.003
+TOTAL:  Unvoiced frames as voiced:      290/7045 (4.12 %)
+TOTAL:  Voiced frames as unvoiced:      286/4155 (6.88 %)
+TOTAL:  Gross voiced errors (+20.00 %): 51/3869 (1.32 %)
+TOTAL:  MSE of fine errors:     2.84 %
+===>    TOTAL:  91.55 %
+0.004
+TOTAL:  Unvoiced frames as voiced:      288/7045 (4.09 %)
+TOTAL:  Voiced frames as unvoiced:      286/4155 (6.88 %)
+TOTAL:  Gross voiced errors (+20.00 %): 51/3869 (1.32 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  91.58 %
+0.005
+TOTAL:  Unvoiced frames as voiced:      288/7045 (4.09 %)
+TOTAL:  Voiced frames as unvoiced:      286/4155 (6.88 %)
+TOTAL:  Gross voiced errors (+20.00 %): 51/3869 (1.32 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  91.58 %
+0.006
+TOTAL:  Unvoiced frames as voiced:      285/7045 (4.05 %)
+TOTAL:  Voiced frames as unvoiced:      285/4155 (6.86 %)
+TOTAL:  Gross voiced errors (+20.00 %): 51/3870 (1.32 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  91.61 %
+0.007
+TOTAL:  Unvoiced frames as voiced:      278/7045 (3.95 %)
+TOTAL:  Voiced frames as unvoiced:      287/4155 (6.91 %)
+TOTAL:  Gross voiced errors (+20.00 %): 51/3868 (1.32 %)
+TOTAL:  MSE of fine errors:     2.84 %
+===>    TOTAL:  91.65 %
+0.008
+TOTAL:  Unvoiced frames as voiced:      266/7045 (3.78 %)
+TOTAL:  Voiced frames as unvoiced:      288/4155 (6.93 %)
+TOTAL:  Gross voiced errors (+20.00 %): 50/3867 (1.29 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  91.76 %
+0.009
+TOTAL:  Unvoiced frames as voiced:      256/7045 (3.63 %)
+TOTAL:  Voiced frames as unvoiced:      286/4155 (6.88 %)
+TOTAL:  Gross voiced errors (+20.00 %): 49/3869 (1.27 %)
+TOTAL:  MSE of fine errors:     2.84 %
+===>    TOTAL:  91.87 %
+0.010
+TOTAL:  Unvoiced frames as voiced:      246/7045 (3.49 %)
+TOTAL:  Voiced frames as unvoiced:      293/4155 (7.05 %)
+TOTAL:  Gross voiced errors (+20.00 %): 49/3862 (1.27 %)
+TOTAL:  MSE of fine errors:     2.82 %
+===>    TOTAL:  91.91 %
+0.011
+TOTAL:  Unvoiced frames as voiced:      237/7045 (3.36 %)
+TOTAL:  Voiced frames as unvoiced:      297/4155 (7.15 %)
+TOTAL:  Gross voiced errors (+20.00 %): 50/3858 (1.30 %)
+TOTAL:  MSE of fine errors:     2.81 %
+===>    TOTAL:  91.96 %
+0.012
+TOTAL:  Unvoiced frames as voiced:      236/7045 (3.35 %)
+TOTAL:  Voiced frames as unvoiced:      301/4155 (7.24 %)
+TOTAL:  Gross voiced errors (+20.00 %): 49/3854 (1.27 %)
+TOTAL:  MSE of fine errors:     2.81 %
+===>    TOTAL:  91.94 %
+0.013
+TOTAL:  Unvoiced frames as voiced:      231/7045 (3.28 %)
+TOTAL:  Voiced frames as unvoiced:      303/4155 (7.29 %)
+TOTAL:  Gross voiced errors (+20.00 %): 49/3852 (1.27 %)
+TOTAL:  MSE of fine errors:     2.81 %
+===>    TOTAL:  91.96 %
+0.014
+TOTAL:  Unvoiced frames as voiced:      225/7045 (3.19 %)
+TOTAL:  Voiced frames as unvoiced:      303/4155 (7.29 %)
+TOTAL:  Gross voiced errors (+20.00 %): 48/3852 (1.25 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  92.00 %
+0.015
+TOTAL:  Unvoiced frames as voiced:      222/7045 (3.15 %)
+TOTAL:  Voiced frames as unvoiced:      303/4155 (7.29 %)
+TOTAL:  Gross voiced errors (+20.00 %): 48/3852 (1.25 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  92.03 %
+0.016
+TOTAL:  Unvoiced frames as voiced:      223/7045 (3.17 %)
+TOTAL:  Voiced frames as unvoiced:      306/4155 (7.36 %)
+TOTAL:  Gross voiced errors (+20.00 %): 47/3849 (1.22 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  92.00 %
+0.017
+TOTAL:  Unvoiced frames as voiced:      222/7045 (3.15 %)
+TOTAL:  Voiced frames as unvoiced:      310/4155 (7.46 %)
+TOTAL:  Gross voiced errors (+20.00 %): 46/3845 (1.20 %)
+TOTAL:  MSE of fine errors:     2.83 %
+===>    TOTAL:  91.98 %
+0.018
+TOTAL:  Unvoiced frames as voiced:      218/7045 (3.09 %)
+TOTAL:  Voiced frames as unvoiced:      312/4155 (7.51 %)
+TOTAL:  Gross voiced errors (+20.00 %): 46/3843 (1.20 %)
+TOTAL:  MSE of fine errors:     2.82 %
+===>    TOTAL:  92.00 %
+0.019
+TOTAL:  Unvoiced frames as voiced:      216/7045 (3.07 %)
+TOTAL:  Voiced frames as unvoiced:      316/4155 (7.61 %)
+TOTAL:  Gross voiced errors (+20.00 %): 46/3839 (1.20 %)
+TOTAL:  MSE of fine errors:     2.82 %
+===>    TOTAL:  91.97 %
+0.020
+TOTAL:  Unvoiced frames as voiced:      214/7045 (3.04 %)
+TOTAL:  Voiced frames as unvoiced:      322/4155 (7.75 %)
+TOTAL:  Gross voiced errors (+20.00 %): 46/3833 (1.20 %)
+TOTAL:  MSE of fine errors:     2.82 %
+===>    TOTAL:  91.94 %
+0.021
+TOTAL:  Unvoiced frames as voiced:      213/7045 (3.02 %)
+TOTAL:  Voiced frames as unvoiced:      323/4155 (7.77 %)
+TOTAL:  Gross voiced errors (+20.00 %): 46/3832 (1.20 %)
+TOTAL:  MSE of fine errors:     2.82 %
+===>    TOTAL:  91.94 %
+0.022
+TOTAL:  Unvoiced frames as voiced:      211/7045 (3.00 %)
+TOTAL:  Voiced frames as unvoiced:      327/4155 (7.87 %)
+TOTAL:  Gross voiced errors (+20.00 %): 45/3828 (1.18 %)
+TOTAL:  MSE of fine errors:     2.81 %
+===>    TOTAL:  91.94 %
+0.023
+TOTAL:  Unvoiced frames as voiced:      208/7045 (2.95 %)
+TOTAL:  Voiced frames as unvoiced:      338/4155 (8.13 %)
+TOTAL:  Gross voiced errors (+20.00 %): 43/3817 (1.13 %)
+TOTAL:  MSE of fine errors:     2.80 %
+===>    TOTAL:  91.88 %
+0.024
+TOTAL:  Unvoiced frames as voiced:      203/7045 (2.88 %)
+TOTAL:  Voiced frames as unvoiced:      344/4155 (8.28 %)
+TOTAL:  Gross voiced errors (+20.00 %): 43/3811 (1.13 %)
+TOTAL:  MSE of fine errors:     2.80 %
+===>    TOTAL:  91.86 %
+0.025
+TOTAL:  Unvoiced frames as voiced:      202/7045 (2.87 %)
+TOTAL:  Voiced frames as unvoiced:      351/4155 (8.45 %)
+TOTAL:  Gross voiced errors (+20.00 %): 43/3804 (1.13 %)
+TOTAL:  MSE of fine errors:     2.80 %
+===>    TOTAL:  91.80 %

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-UMINPOT=${1:--8} # First input argument - Upper threshold for power in unvoiced decision
+UMINPOT=${1:--35.8} # First input argument - Upper threshold for power in unvoiced decision
 UMAXNORM_HI=${2:-0.4} # Second input argument - Lower voiced threshold for lag-power ratio
 UMAXNORM_LO=${3:-0.3} # Third input argument - Upper unvoiced threshold for lag-power ratio
 UR1NORM=${4:-0.96} # Fourth input argument - Lower threshold for r1norm when found in gray area, in voiced decision
